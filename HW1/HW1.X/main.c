@@ -69,13 +69,11 @@ int main() {
         if (_CP0_GET_COUNT() > 12000 ) // blink at 1khz square wave
         {
             PORTAINV = 0x0010;
-//            PORTACLR = 0x0010;
             _CP0_SET_COUNT(0);
         }
         
         if (!PORTBbits.RB4)
         {
-//            PORTAINV = 0x0010;
             PORTACLR = 0x0010;
         }
         
