@@ -69,7 +69,7 @@ int main() {
     __builtin_enable_interrupts();
     
     int  sample = 100; 
-    int  cnt = 0;
+    int  cnt_sin = 0,cnt_trig = 0;
     char trigWave [sample],sinWave[sample];
     generateTrigArray(sample, trigWave);
     generateSinArray (sample, sinWave);
@@ -81,20 +81,23 @@ int main() {
 		  // remember the core timer runs at half the CPU speed
       
         
-        if (_CP0_GET_COUNT() > 6000 ) // blink at 1khz square wave
+        if (_CP0_GET_COUNT() > 24000 ) // blink at 1khz square wave
         {
-            cnt ++; 
-           // don't write at the same time 
-            if (cnt%2)
-                setVoltage(0,trigWave[cnt/2]);
-          
-            else
-                setVoltage(1,sinWave [cnt/2]);
+            cnt_sin  ++; 
+            cnt_trig ++;
+           
+            setVoltage(0,sinWave[cnt_sin]);
+            
+            if (cnt_trig%2)
+                setVoltage(1,trigWave [cnt_trig/2]);
          
 
-            if (cnt >= 200) // has nothing to do with the cycle
-                    cnt = 0; //reset counter 
-            
+            if (cnt_sin >= 100) // has nothing to do with the cycle
+                    cnt_sin = 0; //reset counter 
+           
+            if (cnt_trig >= 200) // has nothing to do with the cycle
+                    cnt_trig = 0; //reset counter 
+                
             PORTAINV = 0x0010;
             _CP0_SET_COUNT(0);
         }

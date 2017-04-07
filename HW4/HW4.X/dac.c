@@ -27,20 +27,6 @@ void generateTrigArray(int res, char* out)
 };
 
 
-void outputSinDAC(int freq, int res)
-{
-    int sample = res/freq; 
-    char sinWave [sample]; // (create buffers of 100 samples per period)
-    generateSinArray(sample,sinWave);
-}
-
-void outputTrigDAC(int freq, int res)
-{
-    int  sample = res/freq; 
-    char trigWave [sample];
-    generateTrigArray(sample, trigWave);
-}
-
 void setVoltage(char channel, char voltage)
 {
     // bit 6 5 4 are constant always (respectively 0 1 1)

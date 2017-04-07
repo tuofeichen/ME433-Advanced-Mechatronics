@@ -6,8 +6,6 @@
 
 void generateSinArray(int res, char* out);
 void generateTrigArray(int res, char* out);
-void outputTrigDAC(int freq, int res);
-void outputSinDAC(int freq, int res);
 void setVoltage(char channel, char voltage);
 
 
