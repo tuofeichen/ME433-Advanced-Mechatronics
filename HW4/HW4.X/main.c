@@ -1,6 +1,5 @@
 #include<xc.h>           // processor SFR definitions
 #include<sys/attribs.h>  // __ISR macro
-
 #include "spi.h"
 #include "dac.h"
 
@@ -39,9 +38,33 @@
 #pragma config FUSBIDIO     = ON      // USB pins controlled by USB module
 #pragma config FVBUSONIO    = ON      // USB BUSON controlled by USB module
 
+#define  SAMPLE  100
 
 
+volatile int cnt_sin = 0, cnt_trig = 0;
+volatile char trigWave[SAMPLE], sinWave[SAMPLE];
 
+void __ISR(_TIMER_2_VECTOR, IPL7SOFT)blink(void)
+{
+        cnt_sin  ++; 
+        cnt_trig ++;
+        const char period = 100; 
+        
+        if (cnt_sin%period)
+            setVoltage(0,sinWave[cnt_sin/period]);
+            
+        if (cnt_trig%(period*2))
+            setVoltage(1,trigWave [cnt_trig/(period*2)]);
+         
+
+        if (cnt_sin >= period  * 100) // has nothing to do with the cycle
+                    cnt_sin = 0; //reset counter 
+           
+        if (cnt_trig >= period * 2* 100) // has nothing to do with the cycle
+                    cnt_trig = 0; //reset counter 
+        
+    IFS0bits.T1IF = 0;          // clear interrupt flag
+};
 
 int main() {
 
@@ -65,22 +88,20 @@ int main() {
     _CP0_SET_COUNT(0);
     
     spi_init();
- 
+    timer_init();
+    
     __builtin_enable_interrupts();
-    
-    int  sample = 100; 
-    int  cnt_sin = 0,cnt_trig = 0;
-    char trigWave [sample],sinWave[sample];
-    generateTrigArray(sample, trigWave);
-    generateSinArray (sample, sinWave);
-    
+
+
+    generateTrigArray(SAMPLE, trigWave);
+    generateSinArray (SAMPLE, sinWave);
+   
     
     while(1) {
         
 	    // use _CP0_SET_COUNT(0) and _CP0_GET_COUNT() to test the PIC timing
 		  // remember the core timer runs at half the CPU speed
-      
-        
+        /*
         if (_CP0_GET_COUNT() > 24000 ) // blink at 1khz square wave
         {
             cnt_sin  ++; 
@@ -101,6 +122,7 @@ int main() {
             PORTAINV = 0x0010;
             _CP0_SET_COUNT(0);
         }
+        */
 
         if (!PORTBbits.RB4)
         {
