@@ -81,8 +81,9 @@ int main() {
         for (i = 0 ; i < 100;i++)
         {   
            sprintf(hello, "hello ME433! %d  ",i);
-           _CP0_SET_COUNT(0);
-            while (_CP0_GET_COUNT()< 10000000)
+           
+           _CP0_SET_COUNT(0);        
+            while (_CP0_GET_COUNT()< 4800000)
             {
                 ;
             }
