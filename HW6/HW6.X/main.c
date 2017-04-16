@@ -92,7 +92,7 @@ int main() {
            
            
         }
-        drawRect(28,50,  100 ,  20 , BACKGROUND);
+        drawRect(14 ,50,  100 ,  20 , BACKGROUND);
         
         if (!PORTBbits.RB4)
         {
