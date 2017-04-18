@@ -38,9 +38,22 @@
 #pragma config FVBUSONIO    = ON      // USB BUSON controlled by USB module
 
 
-void __ISR(_TIMER_2_VECTOR, IPL7SOFT)blink(void)
+volatile int i = 0;
+
+void __ISR(_TIMER_2_VECTOR, IPL7SOFT)refreshScreen(void)
 {
-    IFS0bits.T1IF = 0;          // clear interrupt flag
+    char hello [100];
+    sprintf(hello, "hello ME433! %d  ",i);         
+    drawStr (28, 32,  hello,   0xF0E2);
+    drawRect(14, 50,  i ,  20 ,0xF0E2);
+    PORTAINV = 0x0010;
+    if (i++ == 100)
+    {
+        drawRect(14 ,50,  100 ,  20 , BACKGROUND);
+        i = 0;
+    }           
+    
+    IFS0bits.T2IF = 0;          // clear interrupt flag 2!
 };
 
 int main() {
@@ -66,38 +79,38 @@ int main() {
     
     SPI1_init();
     LCD_init();
-//    timer_init();
+    timer_init();
     
     __builtin_enable_interrupts();
     
-    char hello [100];
+
 
     PORTACLR = 0x0010; // clear error flag
     LCD_clearScreen(BACKGROUND);
 
 //    drawRect(30,50,40,20,0xF0E2);
     while(1) {           
-        int i = 0;
-        for (i = 0 ; i < 100;i++)
-        {   
-           sprintf(hello, "hello ME433! %d  ",i);
-           
-           _CP0_SET_COUNT(0);        
-            while (_CP0_GET_COUNT()< 4800000)
-            {
-                ;
-            }
-           drawStr (28, 32,  hello,   0xF0E2);
-           drawRect(14, 50,  i ,  20 ,0xF0E2);
-           
-           
-        }
-        drawRect(14 ,50,  100 ,  20 , BACKGROUND);
-        
-        if (!PORTBbits.RB4)
-        {
-            PORTACLR = 0x0010;
-        }
+//        int i = 0;
+//        for (i = 0 ; i < 100;i++)
+//        {   
+//           sprintf(hello, "hello ME433! %d  ",i);
+//           
+//           _CP0_SET_COUNT(0);        
+//            while (_CP0_GET_COUNT()< 4800000)
+//            {
+//                ;
+//            }
+//           drawStr (28, 32,  hello,   0xF0E2);
+//           drawRect(14, 50,  i ,  20 ,0xF0E2);
+//           
+//           
+//        }
+//        drawRect(14 ,50,  100 ,  20 , BACKGROUND);
+//        
+//        if (!PORTBbits.RB4)
+//        {
+//            PORTACLR = 0x0010;
+//        }
         
     }
 }

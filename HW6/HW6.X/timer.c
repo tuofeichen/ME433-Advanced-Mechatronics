@@ -6,8 +6,9 @@ void timer_init()
 {
 //  10Hz with 48Mhz Timer -> 48e6/10 = (PR+1)*PRE_SCALER 
 
+
+    PR2 = 37499; //18749*2; 
     TMR2 = 0;                   // reset timer 2
-    PR2 = 18749; 
     T2CONbits.TCKPS = 0b111;    // 256 prescaler
     T2CONbits.TGATE = 0;        // not gated
     T2CONbits.ON = 1;           // turn on
