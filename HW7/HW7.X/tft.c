@@ -4,11 +4,12 @@
 int drawChar(int x, int y, char c, int color)
 {  
     int i = 0,j = 0;
-    drawRect(x,y,CHAR_WIDTH,CHAR_HEIGHT,BACKGROUND); // clear previous buffer
+//    drawRect(x,y,CHAR_WIDTH,CHAR_HEIGHT,BACKGROUND); // clear previous buffer
             
-//    for (i = x;i<x+CHAR_HEIGHT;i++) // clear the bar for writing the following sentence
-//        clearRowBuff(i);
-    
+    for (i = x; i<x+CHAR_WIDTH;i++) // clear the bar for writing the following sentence
+        for (j = y; j < y+CHAR_HEIGHT;j++)
+             LCD_drawPixel(i,j,BACKGROUND); // clear some buffer
+            
     if (((x+CHAR_WIDTH) > IMG_WIDTH)||((y+CHAR_HEIGHT)>IMG_HEIGHT))
     {
         // output error msg (TURN OFF GREEN LED)
@@ -53,26 +54,34 @@ int drawRect(int x, int y, int width, int height, int color)
         return 0; 
     }
     
-    if (width > 0)
+    if ((width > 0)&& (height>0))
     {
     for (i = x; i < x+ width; i++)
         for (j = y; j < y + height; j++)
             LCD_drawPixel(i,j,color);
     }
-    else
+    else if ((width<0) && (height>0))
     {
        for (i = x+width; i < x; i++)
         for (j = y; j < y + height; j++)
             LCD_drawPixel(i,j,color); 
     }
+    else if ((width>0) && (height<0))
+    {
+       for (i = x; i < x+width; i++)
+        for (j = y+height; j < y; j++)
+            LCD_drawPixel(i,j,color); 
+    }
+    else
+    {  
+       for (i = x+width; i < x; i++)
+        for (j = y+height; j < y; j++)
+           LCD_drawPixel(i,j,color); 
+    }
     
-    for (i = x+width;i<IMG_WIDTH;i++)
-        for (j = y+height; j < IMG_HEIGHT; j++)
-            LCD_drawPixel(i,j,BACKGROUND); // clear some buffer
     
-    for (i = 0;i<x;i++)
-        for (j = 0; j < y; j++)
-            LCD_drawPixel(i,j,BACKGROUND); // clear some buffer
+    
+    
     
 }
 
