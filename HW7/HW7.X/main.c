@@ -40,11 +40,9 @@
 #pragma config FUSBIDIO     = ON      // USB pins controlled by USB module
 #pragma config FVBUSONIO    = ON      // USB BUSON controlled by USB module
 
-
-void __ISR(_TIMER_2_VECTOR, IPL7SOFT)blink(void)
-{
+void __ISR(_TIMER_2_VECTOR, IPL7SOFT)blink(void) {
     // do something
-    IFS0bits.T2IF = 0;          // clear interrupt flag
+    IFS0bits.T2IF = 0; // clear interrupt flag
 };
 
 int main() {
@@ -66,56 +64,55 @@ int main() {
     // do your TRIS and LAT commands here
     TRISAbits.TRISA4 = 0; //set A4 to be output (Green LED)
     TRISBbits.TRISB4 = 1; //set B4 to be input  (debug button)
-    
+
     _CP0_SET_COUNT(0);
-    
-//    timer_init();
-    
-    i2c_master_init();  
+
+    //    timer_init();
+
+    i2c_master_init();
     SPI1_init();
     LCD_init();
-//    timer_init();
     imu_init();
-    
+
     __builtin_enable_interrupts();
-    
-    LCD_clearScreen(BACKGROUND);
-    
-    int16_t gyro[10];
-    int16_t acc [10];
-    
-    char hello [100];
-    while(1) {
-        
+
+
+
+    while (1) {
+
+        int16_t gyro[10];
+        int16_t acc [10];
+
+        char hello [100];
         imu_read_acc(acc);
-        sprintf(hello,"%d  %d  ", acc[0],acc[1]);
-        drawStr (10, 10,  hello, WHITE);    
-//        imu_test();
-        
-        int height = -40*acc[1]/IMU_RES;
-        int width  = -40*acc[0]/IMU_RES;
-        char barSize = 3; 
-        
-        drawRect(50,50, width , barSize, RED); // Y angle
+        sprintf(hello, "%d  %d  ", acc[0], acc[1]);
+        drawStr(10, 10, hello, WHITE);
+        //        imu_test();
+
+        int height = -40 * acc[1] / IMU_RES;
+        int width = -40 * acc[0] / IMU_RES;
+        char barSize = 3;
+
+        drawRect(50, 50, width, barSize, RED); // Y angle
         if (width > 0)
-            drawRect(50+width, 50, IMG_WIDTH- 50- width, barSize, BACKGROUND); // clear buffer
+            drawRect(50 + width, 50, IMG_WIDTH - 50 - width, barSize, BACKGROUND); // clear buffer
         else
-            drawRect(0,50, 50+width, barSize, BACKGROUND); // clear buffer
-        
-//        
-        drawRect(50,50 , barSize, height, GREEN); // Y angle
+            drawRect(0, 50, 50 + width, barSize, BACKGROUND); // clear buffer
+
+        //        
+        drawRect(50, 50, barSize, height, GREEN); // Y angle
         if (height > 0)
-            drawRect(50,50+height,  barSize, IMG_HEIGHT - 50 - height, BACKGROUND); // clear buffer
+            drawRect(50, 50 + height, barSize, IMG_HEIGHT - 50 - height, BACKGROUND); // clear buffer
         else
-            drawRect(50, 0, barSize, 50+height, BACKGROUND); // clear buffer
-        
-        
-        while (_CP0_GET_COUNT()<1200000) // some delay
+            drawRect(50, 0, barSize, 50 + height, BACKGROUND); // clear buffer
+
+
+        while (_CP0_GET_COUNT() < 1200000) // some delay
         {
             ;
-        }            
+        }
         _CP0_SET_COUNT(0);
-        
-   
+
+
     }
 }
