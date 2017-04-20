@@ -115,7 +115,8 @@ typedef struct
 {
     /* The application's current state */
     APP_STATES state;
-
+    int dummy;  // global variables
+    
     /* TODO: Define any additional data used by the application. */
 
 } APP_DATA;

@@ -170,8 +170,12 @@ void APP_Tasks(void) {
             imu_read_acc(acc);
             sprintf(hello, "%d  %d  ", acc[0], acc[1]);
             drawStr(10, 10, hello, WHITE);
+            sprintf(hello, "this is a test for dummy %d ", appData.dummy);
+            appData.dummy++;
+            
+            drawStr(10, 30, hello, WHITE);
+            
             //        imu_test();
-
             int height = -40 * acc[1] / IMU_RES;
             int width = -40 * acc[0] / IMU_RES;
             char barSize = 3;
