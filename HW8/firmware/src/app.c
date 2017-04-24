@@ -168,32 +168,31 @@ void APP_Tasks(void) {
         {
             int16_t gyro[10];
             int16_t acc [10];
-
+            const char centerX = 60;
+            const char centerY = 60; 
             char reading [100];
             
             imu_read_acc(acc);
+            imu_read_gyro(gyro);
             sprintf(reading, "%d  %d  ", acc[0], acc[1]);
             drawStr(10, 10, reading, WHITE);
-                        
-            
-            //        imu_test();
 
-            int height = -40 * acc[1] / IMU_RES;
-            int width = -40 * acc[0] / IMU_RES;
+            int height = -50 * acc[1] / IMU_RES;
+            int width  = -50 * acc[0] / IMU_RES;
             char barSize = 3;
 
-            drawRect(50, 50, width, barSize, RED); // Y angle
+            drawRect(centerX, centerY, width, barSize, RED); // Y angle
             if (width > 0)
-                drawRect(50 + width, 50, IMG_WIDTH - 50 - width, barSize, BACKGROUND); // clear buffer
+                drawRect(centerX + width, centerY, IMG_WIDTH - centerX - width, barSize, BACKGROUND); // clear buffer
             else
-                drawRect(0, 50, 50 + width, barSize, BACKGROUND); // clear buffer
+                drawRect(0, centerY, centerX + width, barSize, BACKGROUND); // clear buffer
 
             //        
-            drawRect(50, 50, barSize, height, GREEN); // Y angle
+            drawRect(centerX, centerY, barSize, height, GREEN); // Y angle
             if (height > 0)
-                drawRect(50, 50 + height, barSize, IMG_HEIGHT - 50 - height, BACKGROUND); // clear buffer
+                drawRect(centerX, centerY + height, barSize, IMG_HEIGHT - centerY - height, BACKGROUND); // clear buffer
             else
-                drawRect(50, 0, barSize, 50 + height, BACKGROUND); // clear buffer
+                drawRect(centerX, 0, barSize, centerY + height, BACKGROUND); // clear buffer
 
 
             while (_CP0_GET_COUNT() < 12000) // some delay
