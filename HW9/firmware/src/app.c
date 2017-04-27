@@ -305,6 +305,9 @@ bool APP_StateReset(void) {
  */
 
 void APP_Initialize(void) {
+
+    __builtin_disable_interrupts();
+
     /* Place the App state machine in its initial state. */
     appData.state = APP_STATE_INIT;
 
@@ -339,6 +342,7 @@ void APP_Initialize(void) {
     /* Set up the read buffer */
     appData.readBuffer = &readBuffer[0];
 
+
     TRISAbits.TRISA4 = 0; //set A4 to be output (Green LED)
     TRISBbits.TRISB4 = 1; //set B4 to be input  (debug button)
 
@@ -348,8 +352,9 @@ void APP_Initialize(void) {
     SPI1_init();
     LCD_init();
     imu_init();
-    LCD_clearScreen(GREEN);
+    LCD_clearScreen(0x2345);
 
+    __builtin_enable_interrupts();
 }
 
 /******************************************************************************
@@ -428,36 +433,30 @@ void APP_Tasks(void) {
 
             if (appData.isReadComplete || _CP0_GET_COUNT() - startTime > (48000000 / 20 / 10)) {
 
-                //                char reading [100];
-                //                sprintf(reading," hello  ");//,readBuffer[0]);
-                //                drawStr(10, 10, reading, WHITE); 
+                char reading [100];
+                sprintf(reading, " hello  "); //,readBuffer[0]);
+                drawStr(10, 10, reading, WHITE);
 
-                
-                if (appData.isReadComplete)
-                {
+
+                if (appData.isReadComplete) {
                     appData.state = APP_STATE_SCHEDULE_WRITE; // key press response
                 }
-                
+
                 if ((readBuffer[0] == 'r') && (i < 100)) {
                     appData.state = APP_STATE_SCHEDULE_WRITE; // imu response
                     i++;
-                }  
-                else if(i >= 100) { // reset counter and stop reading
+                } else if (i >= 100) { // reset counter and stop reading
                     i = -1;
                     readBuffer[0] = 'n'; // reset read buffer
                     break;
-                } else 
+                } else
                     break;
 
                 int16_t gyro[10];
                 int16_t acc [10];
-                //                char reading [100];
 
                 imu_read_acc(acc);
                 imu_read_gyro(gyro);
-
-                //                sprintf(reading, "%d  %d  ", acc[0], acc[1]);
-                //                drawStr(10, 10, readBuffer, WHITE); 
 
                 // construct message to send 
                 len = sprintf(dataOut, "%d %d %d %d %d %d %d \r\n" \
@@ -478,8 +477,6 @@ void APP_Tasks(void) {
             appData.isWriteComplete = false;
             appData.state = APP_STATE_WAIT_FOR_WRITE_COMPLETE;
 
-            //            len = sprintf(dataOut, "%d\r\n", i);
-            //            i++;
 
             if (len == 0) {
                 len = 1;
