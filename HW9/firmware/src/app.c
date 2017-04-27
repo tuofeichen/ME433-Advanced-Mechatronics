@@ -342,7 +342,6 @@ void APP_Initialize(void) {
     TRISAbits.TRISA4 = 0; //set A4 to be output (Green LED)
     TRISBbits.TRISB4 = 1; //set B4 to be input  (debug button)
 
-
     startTime = _CP0_GET_COUNT();
 
     i2c_master_init();
@@ -350,6 +349,7 @@ void APP_Initialize(void) {
     LCD_init();
     imu_init();
     LCD_clearScreen(GREEN);
+
 }
 
 /******************************************************************************
@@ -425,43 +425,44 @@ void APP_Tasks(void) {
 
             /* Check if a character was received or a switch was pressed.
              * The isReadComplete flag gets updated in the CDC event handler. */
-   
+
             if (appData.isReadComplete || _CP0_GET_COUNT() - startTime > (48000000 / 20 / 10)) {
+
+                //                char reading [100];
+                //                sprintf(reading," hello  ");//,readBuffer[0]);
+                //                drawStr(10, 10, reading, WHITE); 
+
                 
-//                char reading [100];
-//                sprintf(reading,"%c ",readBuffer[0]);
-//                drawStr(10, 10, reading, WHITE); 
-          
-                if (readBuffer[0] == 'r') 
+                if (appData.isReadComplete)
                 {
-                    i = 0;
-                    readBuffer[0] = 'n'; // reset read buffer
+                    appData.state = APP_STATE_SCHEDULE_WRITE; // key press response
                 }
                 
-                if ((i >= 100)|| (i == -1) ) // only 100 samples needed 
-                {
-                    
+                if ((readBuffer[0] == 'r') && (i < 100)) {
+                    appData.state = APP_STATE_SCHEDULE_WRITE; // imu response
+                    i++;
+                }  
+                else if(i >= 100) { // reset counter and stop reading
                     i = -1;
+                    readBuffer[0] = 'n'; // reset read buffer
                     break;
-                }
-                
+                } else 
+                    break;
+
                 int16_t gyro[10];
                 int16_t acc [10];
-//                char reading [100];
+                //                char reading [100];
 
                 imu_read_acc(acc);
                 imu_read_gyro(gyro);
-                
-//                sprintf(reading, "%d  %d  ", acc[0], acc[1]);
-//                drawStr(10, 10, readBuffer, WHITE); 
-          
-                // construct message to send 
-                len = sprintf(dataOut,"%d %d %d %d %d %d %d \r\n" \
-                        , i++, acc[0],acc[1],acc[2],gyro[0],gyro[1],gyro[2]);
-                        
-                appData.state = APP_STATE_SCHEDULE_WRITE;
-            }
 
+                //                sprintf(reading, "%d  %d  ", acc[0], acc[1]);
+                //                drawStr(10, 10, readBuffer, WHITE); 
+
+                // construct message to send 
+                len = sprintf(dataOut, "%d %d %d %d %d %d %d \r\n" \
+                        , i, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2]);
+            }
             break;
 
 
@@ -477,15 +478,14 @@ void APP_Tasks(void) {
             appData.isWriteComplete = false;
             appData.state = APP_STATE_WAIT_FOR_WRITE_COMPLETE;
 
-//            len = sprintf(dataOut, "%d\r\n", i);
-//            i++;
-            
-            if (len == 0)
-            {
+            //            len = sprintf(dataOut, "%d\r\n", i);
+            //            i++;
+
+            if (len == 0) {
                 len = 1;
                 dataOut[0] = 0; // write empty packet if no message is sent
             }
-            
+
             if (appData.isReadComplete) {
                 USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
                         &appData.writeTransferHandle,
