@@ -434,19 +434,19 @@ void APP_Tasks(void) {
 
             if (appData.isReadComplete || _CP0_GET_COUNT() - startTime > (48000000 / 20 / 10)) {
 
-                char reading [100];
-                sprintf(reading, " hello  "); //,readBuffer[0]);
-                drawStr(10, 10, reading, WHITE);
+//                char reading [1000];
+//                sprintf(reading, " hello  "); //,readBuffer[0]);
+//                drawStr(10, 10, reading, WHITE);
 
 
                 if (appData.isReadComplete) {
                     appData.state = APP_STATE_SCHEDULE_WRITE; // key press response
                 }
 
-                if ((readBuffer[0] == 'r') && (i < 100)) {
+                if ((readBuffer[0] == 'r') && (i < 1000)) {
                     appData.state = APP_STATE_SCHEDULE_WRITE; // imu response
                     i++;
-                } else if (i >= 100) { // reset counter and stop reading
+                } else if (i >= 1000) { // reset counter and stop reading
                     i = -1;
                     readBuffer[0] = 'n'; // reset read buffer
                     break;
