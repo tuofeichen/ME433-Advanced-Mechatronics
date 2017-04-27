@@ -352,7 +352,8 @@ void APP_Initialize(void) {
     SPI1_init();
     LCD_init();
     imu_init();
-    LCD_clearScreen(0x2345);
+    filter_init();
+    LCD_clearScreen(0x2345); // this has some conflict with CDC
 
     __builtin_enable_interrupts();
 }
@@ -452,15 +453,21 @@ void APP_Tasks(void) {
                 } else
                     break;
 
-                int16_t gyro[10];
-                int16_t acc [10];
+                int16_t gyro[3];
+                int16_t acc [3];
 
                 imu_read_acc(acc);
                 imu_read_gyro(gyro);
-
+                
+                mafData = updateMAF(acc[2]);
+                firData = updateFIR(acc[2]);
+                iirData = updateIIR(acc[2]);
+                
                 // construct message to send 
-                len = sprintf(dataOut, "%d %d %d %d %d %d %d \r\n" \
-                        , i, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2]);
+//                len = sprintf(dataOut, "%d %d %d %d %d %d %d \r\n" \
+//                        , i, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2]);
+                
+                len = sprintf(dataOut, "%d,%d,%d,%d,%d\r\n", i, acc[2],mafData,firData,iirData); //only send back z acc value
             }
             break;
 
@@ -472,7 +479,6 @@ void APP_Tasks(void) {
             }
 
             /* Setup the write */
-
             appData.writeTransferHandle = USB_DEVICE_CDC_TRANSFER_HANDLE_INVALID;
             appData.isWriteComplete = false;
             appData.state = APP_STATE_WAIT_FOR_WRITE_COMPLETE;

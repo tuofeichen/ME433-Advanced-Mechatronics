@@ -23,6 +23,7 @@
         <itemPath>../../../HW8/firmware/src/ILI9163C.h</itemPath>
         <itemPath>../../../HW8/firmware/src/tft.h</itemPath>
         <itemPath>../../../HW8/firmware/src/i2c.h</itemPath>
+        <itemPath>../src/filter.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="framework" projectFiles="true">
         <logicalFolder name="f5" displayName="driver" projectFiles="true">
@@ -141,6 +142,7 @@
         <itemPath>../../../HW8/firmware/src/ILI9163C.c</itemPath>
         <itemPath>../../../HW8/firmware/src/imu.c</itemPath>
         <itemPath>../../../HW8/firmware/src/tft.c</itemPath>
+        <itemPath>../src/filter.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="framework" projectFiles="true">
         <logicalFolder name="f2" displayName="driver" projectFiles="true">
