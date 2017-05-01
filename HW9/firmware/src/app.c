@@ -434,9 +434,9 @@ void APP_Tasks(void) {
 
             if (appData.isReadComplete || _CP0_GET_COUNT() - startTime > (48000000 / 20 / 10)) {
 
-//                char reading [1000];
-//                sprintf(reading, " hello  "); //,readBuffer[0]);
-//                drawStr(10, 10, reading, WHITE);
+                //                char reading [1000];
+                //                sprintf(reading, " hello  "); //,readBuffer[0]);
+                //                drawStr(10, 10, reading, WHITE);
 
 
                 if (appData.isReadComplete) {
@@ -444,8 +444,11 @@ void APP_Tasks(void) {
                 }
 
                 if ((readBuffer[0] == 'r') && (i < 1000)) {
-                    appData.state = APP_STATE_SCHEDULE_WRITE; // imu response
                     i++;
+                    if (i > FIR_WIN) {
+                        appData.state = APP_STATE_SCHEDULE_WRITE; // imu response
+                    } 
+
                 } else if (i >= 1000) { // reset counter and stop reading
                     i = -1;
                     readBuffer[0] = 'n'; // reset read buffer
@@ -458,16 +461,17 @@ void APP_Tasks(void) {
 
                 imu_read_acc(acc);
                 imu_read_gyro(gyro);
-                
+
+                // filter update
                 mafData = updateMAF(acc[2]);
                 firData = updateFIR(acc[2]);
                 iirData = updateIIR(acc[2]);
-                
+
                 // construct message to send 
-//                len = sprintf(dataOut, "%d %d %d %d %d %d %d \r\n" \
+                //                len = sprintf(dataOut, "%d %d %d %d %d %d %d \r\n" \
 //                        , i, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2]);
-                
-                len = sprintf(dataOut, "%d,%d,%d,%d,%d\r\n", i, acc[2],mafData,firData,iirData); //only send back z acc value
+
+                len = sprintf(dataOut, "%d,%d,%d,%d,%d\r\n", i, acc[2], mafData, firData, iirData); //only send back z acc value
             }
             break;
 
