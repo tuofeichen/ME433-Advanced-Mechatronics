@@ -330,7 +330,7 @@ void APP_Tasks(void) {
         case APP_STATE_MOUSE_EMULATE:
 
             // every 50th loop, or 20 times per second
-            if (movement_length > 30) {
+            if (movement_length > 50) {
                 appData.mouseButton[0] = MOUSE_BUTTON_STATE_RELEASED;
                 appData.mouseButton[1] = MOUSE_BUTTON_STATE_RELEASED;
                 //                appData.xCoordinate = (int8_t) dir_table[vector & 0x07];
@@ -340,10 +340,10 @@ void APP_Tasks(void) {
                 updateIIRVector(acc, 3);
                 
 
-                if (!(vector%4))
+                if (!(vector%6))
                 {
-                   appData.xCoordinate = - (int8_t)(acc[0]*0.0006);
-                   appData.yCoordinate = - (int8_t)(acc[1]*0.0006);
+                   appData.xCoordinate = - (int8_t)(acc[0]*0.001);
+                   appData.yCoordinate = - (int8_t)(acc[1]*0.001);
                 }
                 else // average at 1/2
                 {
