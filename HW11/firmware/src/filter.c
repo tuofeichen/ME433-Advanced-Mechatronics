@@ -4,6 +4,7 @@
 void filter_init()
 {
     int i = 0;
+    iirPrev = 0;
     for (i = 0;i<MAF_WIN;i++)
     {
         mafPrev [i] = 0;
@@ -45,18 +46,7 @@ int  updateFIR (int in)
 
 int  updateIIR (int in)
 {
-    int out = iirPrev[0]*iirWeight + in* (1-iirWeight);
-    iirPrev[0] = out;
+    int out = iirPrev*iirWeight + in* (1-iirWeight);
+    iirPrev = out;
     return out; 
-}
-
-void updateIIRVector(int16_t *in, int len)
-{
-    int i = 0;
-    for (i = 0; i < len; i++)
-    {
-      *in =  iirPrev[i]*iirWeight + (*in) * (1-iirWeight);
-      iirPrev[i] = *in;
-      in ++;
-    }   
 }
