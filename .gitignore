@@ -2,7 +2,9 @@
 /HW1/HW1.X/build/default/
 /HW1/HW1.X/dist/default/
 /HW1/HW1.X/debug
-
+*.mk
+*.properties
+Makefile
 Document
 /ME433_2017
 *#*
