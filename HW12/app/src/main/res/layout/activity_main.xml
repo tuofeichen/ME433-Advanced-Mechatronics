@@ -24,7 +24,27 @@
 
 
         <SeekBar
-            android:id="@+id/seek1"
+            android:id="@+id/thresh1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            android:progress="20"
+            android:secondaryProgress="20" />
+
+        <SeekBar
+            android:id="@+id/thresh2"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            android:progress="20"
+            android:secondaryProgress="20" />
+
+        <SeekBar
+            android:id="@+id/thresh3"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
@@ -38,6 +58,8 @@
             android:text="initial value "
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
             />
 
 
