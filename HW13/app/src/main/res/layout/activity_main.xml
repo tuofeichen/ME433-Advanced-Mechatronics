@@ -31,13 +31,13 @@
         <TextureView
             android:id="@+id/textureview"
             android:layout_width="640px"
-            android:layout_height="350px" />
+            android:layout_height="380px" />
 
         <SeekBar
             android:id="@+id/thresh1"
             android:layout_width="640px"
             android:layout_height= "50px"
-            android:layout_margin="10dp"
+            android:layout_margin="20dp"
             android:paddingBottom="5dp"
             android:paddingTop="5dp"
             android:progress="20"
