@@ -61,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // echo the progress bar value
+                String data = String.valueOf(myControl.getProgress())+'\n';
+                try {
+                    sPort.write(data.getBytes(), 10);
+                }catch (IOException e){}
                 myTextView2.setText("value on click is " + myControl.getProgress());
             }
         });

@@ -4,7 +4,6 @@
 /HW1/HW1.X/debug
 *.mk
 *.properties
-Makefile
 Document
 /ME433_2017
 *#*
@@ -32,3 +31,5 @@ Document
 /HW11/firmware/HW11.X/build/default/
 /HW11/firmware/HW11.X/dist/default/
 /HW14_PIC/firmware/HW14_PIC.X/nbproject/private/
+/HW14_PIC/firmware/HW14_PIC.X/build/default/
+/HW14_PIC/firmware/HW14_PIC.X/dist/default/

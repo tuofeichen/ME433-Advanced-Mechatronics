@@ -65,8 +65,14 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 uint8_t APP_MAKE_BUFFER_DMA_READY dataOut[APP_READ_BUFFER_SIZE];
 uint8_t APP_MAKE_BUFFER_DMA_READY readBuffer[APP_READ_BUFFER_SIZE];
+
+// global variables
 int len, i = 0;
 int startTime = 0;
+char rx[64]; // the raw data
+int rxPos = 0; // how much data has been stored
+bool gotRx = 0; // the flag
+int rxVal = 0; // a place to store the int that was received
 
 // *****************************************************************************
 /* Application Data
@@ -364,7 +370,6 @@ void APP_Tasks(void) {
             if (appData.deviceHandle != USB_DEVICE_HANDLE_INVALID) {
                 /* Register a callback with device layer to get event notification (for end point 0) */
                 USB_DEVICE_EventHandlerSet(appData.deviceHandle, APP_USBDeviceEventHandler, 0);
-
                 appData.state = APP_STATE_WAIT_FOR_CONFIGURATION;
             } else {
                 /* The Device Layer is not ready to be opened. We should try
@@ -390,9 +395,28 @@ void APP_Tasks(void) {
 
             /* If a read is complete, then schedule a read
              * else wait for the current read to complete */
-
             appData.state = APP_STATE_WAIT_FOR_READ_COMPLETE;
             if (appData.isReadComplete == true) {
+                int ii = 0;
+                // loop thru the characters in the buffer
+                while (appData.readBuffer[ii] != 0) {
+                    // if you got a newline
+                    if (appData.readBuffer[ii] == '\n' || appData.readBuffer[ii] == '\r') {
+                        rx[rxPos] = 0; // end the array
+                        sscanf(rx, "%d", &rxVal); // get the int out of the array
+                        gotRx = 1; // set the flag
+                        break; // get out of the while loop
+                    } else if (appData.readBuffer[ii] == 0) {
+                        break; // there was no newline, get out of the while loop
+                    } else {
+                        // save the character into the array
+                        rx[rxPos] = appData.readBuffer[ii];
+                        rxPos++;
+                        ii++;
+                    }
+                } // read all the buffer first
+
+
                 appData.isReadComplete = false;
                 appData.readTransferHandle = USB_DEVICE_CDC_TRANSFER_HANDLE_INVALID;
 
@@ -406,6 +430,7 @@ void APP_Tasks(void) {
                 }
             }
 
+
             break;
 
         case APP_STATE_WAIT_FOR_READ_COMPLETE:
@@ -418,7 +443,7 @@ void APP_Tasks(void) {
             /* Check if a character was received or a switch was pressed.
              * The isReadComplete flag gets updated in the CDC event handler. */
 
-            if (appData.isReadComplete || _CP0_GET_COUNT() - startTime > (48000000 / 2 / 5)) {
+            if (gotRx || _CP0_GET_COUNT() - startTime > (48000000 / 2 /5)) {
                 appData.state = APP_STATE_SCHEDULE_WRITE;
             }
 
@@ -432,24 +457,28 @@ void APP_Tasks(void) {
             }
 
             /* Setup the write */
-
             appData.writeTransferHandle = USB_DEVICE_CDC_TRANSFER_HANDLE_INVALID;
             appData.isWriteComplete = false;
             appData.state = APP_STATE_WAIT_FOR_WRITE_COMPLETE;
 
-            len = sprintf(dataOut, "%d\r\n", i);
-            i++;
-            if (appData.isReadComplete) {
+            if (gotRx) {
+                len = sprintf(dataOut, "got: %d\r\n", rxVal);
+                i++;
                 USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
                         &appData.writeTransferHandle,
-                        appData.readBuffer, 1,
+                        dataOut, len,
                         USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
+                rxPos = 0;
+                gotRx = 0; // here why doesn't reset?
             } else {
+                len = sprintf(dataOut, "%d\r\n", i);
+                i++;
                 USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
                         &appData.writeTransferHandle, dataOut, len,
                         USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
                 startTime = _CP0_GET_COUNT();
             }
+
             break;
 
         case APP_STATE_WAIT_FOR_WRITE_COMPLETE:
@@ -460,7 +489,6 @@ void APP_Tasks(void) {
 
             /* Check if a character was sent. The isWriteComplete
              * flag gets updated in the CDC event handler */
-
             if (appData.isWriteComplete == true) {
                 appData.state = APP_STATE_SCHEDULE_READ;
             }
