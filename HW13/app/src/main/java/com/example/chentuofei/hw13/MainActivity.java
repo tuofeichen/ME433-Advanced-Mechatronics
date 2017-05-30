@@ -122,6 +122,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         // every time there is a new Camera preview frame
         mTextureView.getBitmap(bmp);
+        int com = 0, com_cnt = 0;
 
         final Canvas c = mSurfaceHolder.lockCanvas();
         if (c != null) {
@@ -135,21 +136,28 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
                 for (int i = 0; i < bmp.getWidth(); i++) {
                     if ((green(pixels[i]) - red(pixels[i])) > thresh) {
                         pixels[i] = rgb(0, 255, 0); // over write the pixel with pure green
+                    } else if ((blue(pixels[i]) - red(pixels[i])) > thresh){
+                        pixels[i] = rgb(0, 0, 255);
+                    }
+                    else
+                    {
+                        com += i;
+                        com_cnt++;
                     }
                 }
-
                 // update the row
                 bmp.setPixels(pixels, 0, bmp.getWidth(), 0, startY, bmp.getWidth(), 1);
             }
+            com/=com_cnt;
         }
 
         // draw a circle at some position
         int pos = 50;
-        canvas.drawCircle(pos, 240, 5, paint1); // x position, y position, diameter, color
+        canvas.drawCircle(com,bmp.getHeight()/2, 5, paint1); // x position, y position, diameter, color
+        canvas.drawText("com is " + com,10,200,paint1);//+ thresh,10,200,paint1);
 
-        canvas.drawText("thresh " + thresh,10,200,paint1);
         // write the pos as text
-//        canvas.drawText("pos = " + pos, 10, 200, paint1);
+
         c.drawBitmap(bmp, 0, 0, null);
         mSurfaceHolder.unlockCanvasAndPost(c);
 
