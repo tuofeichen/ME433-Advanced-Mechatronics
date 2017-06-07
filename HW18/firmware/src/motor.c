@@ -36,11 +36,11 @@ void motor_set_speed(int motor, int pct)
     if (motor == 0) // first motor 
     {
        LATAbits.LATA1 = (pct>0); // direction
-       OC1RS = abs(pct)*PERIOD/100; // velocity, 50%
+       OC1RS = abs(pct); // velocity, 50%
     }
     else
     {
        LATBbits.LATB3 = (pct>0); // direction
-       OC4RS = abs(pct)*PERIOD/100; // velocity, 50%
+       OC4RS = abs(pct); // velocity, 50%
     }
 }

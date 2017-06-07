@@ -57,6 +57,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <stdio.h>
 #include <xc.h>
 #include "motor.h"
+#include <math.h>
+#include "vive.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -75,6 +77,7 @@ int rxPos = 0; // how much data has been stored
 int gotRx = 0; // the flag
 int rxVal1 = 0; // a place to store the int that was received
 int rxVal2 = 0;
+double xPos, yPos, xStart,yStart;
 
 // *****************************************************************************
 /* Application Data
@@ -349,7 +352,10 @@ void APP_Initialize(void) {
     appData.readBuffer = &readBuffer[0];
 
     startTime = _CP0_GET_COUNT();
+    TRISAbits.TRISA4 = 0; //set A4 to be output (Green LED)
+    LATAbits.LATA4 = 0; // start off
     motor_init();
+    vive_init();
 
 }
 
@@ -364,6 +370,7 @@ void APP_Initialize(void) {
 void APP_Tasks(void) {
     /* Update the application state machine based
      * on the current state */
+
 
     switch (appData.state) {
         case APP_STATE_INIT:
@@ -402,7 +409,7 @@ void APP_Tasks(void) {
             appData.state = APP_STATE_WAIT_FOR_READ_COMPLETE;
             if (appData.isReadComplete == true) {
                 int ii = 0;
-                // loop thru the characters in the buffer
+     // loop thru the characters in the buffer
                 while (appData.readBuffer[ii] != 0) {
                     // if you got a newline
 
@@ -440,7 +447,13 @@ void APP_Tasks(void) {
                     }
                 } // read all the buffer first
 
-
+                
+                if (rxVal1 == 0 && rxVal2 == 0) // initial position
+                {
+                
+                    xStart = tan((V1.vertAng - 90.0) * DEG_TO_RAD) * LIGHTHOUSEHEIGHT;
+                    yStart = tan((V1.horzAng - 90.0) * DEG_TO_RAD) * LIGHTHOUSEHEIGHT;
+                }
                 appData.isReadComplete = false;
                 appData.readTransferHandle = USB_DEVICE_CDC_TRANSFER_HANDLE_INVALID;
 
@@ -470,7 +483,7 @@ void APP_Tasks(void) {
              * The isReadComplete flag gets updated in the CDC event handler. */
 
             // this is odd that only gotRx cannot trigger this? 
-            if (gotRx || (_CP0_GET_COUNT() - startTime > (48000000 / 2 / 20))) {
+            if (gotRx || (_CP0_GET_COUNT() - startTime > (48000000 / 2 / 5))) {
                 appData.state = APP_STATE_SCHEDULE_WRITE;
             }
             break;
@@ -487,15 +500,22 @@ void APP_Tasks(void) {
             appData.isWriteComplete = false;
             appData.state = APP_STATE_WAIT_FOR_WRITE_COMPLETE;
 
+            xPos = tan((V1.vertAng - 90.0) * DEG_TO_RAD) * LIGHTHOUSEHEIGHT;   
+            yPos = tan((V1.horzAng - 90.0) * DEG_TO_RAD) * LIGHTHOUSEHEIGHT;
+           
+                
             if (gotRx) {
-                len = sprintf(dataOut, "got: %d %d\r\n", rxVal1, rxVal2); // echo 
+//                len = sprintf(dataOut, "got: %f %d\r\n", rxVal1, rxVal2); // echo 
+                len = sprintf(dataOut, "At: %4.2f %4.2f\r\n", xPos,yPos);
                 rxPos = 0;
                 gotRx = 0;
                 motor_set_speed(1, rxVal1);
                 motor_set_speed(0, rxVal2);
             } else {
-                len = 1;
-                dataOut[0] = 0;
+//                len = 1;
+//                dataOut[0] = 0;
+                // LATAbits.LATA4 = 0;
+                len = sprintf(dataOut, "At: %d, %4.2f %4.2f\r\n", i++, xPos,yPos);
                 //                len = sprintf(dataOut, "%d\r\n", 1); // echo 
                 startTime = _CP0_GET_COUNT();
             }

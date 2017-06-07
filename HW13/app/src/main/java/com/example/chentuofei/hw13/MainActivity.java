@@ -13,6 +13,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -43,17 +44,17 @@ import static android.graphics.Color.blue;
 import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
-
-
+import static java.lang.Math.abs;
 
 
 public class MainActivity extends Activity implements TextureView.SurfaceTextureListener {
 
-    int basePWM = 60;
+    int basePWM = 600;
     int thresh = 0; // comparison value (threshold for green)
     int leftPWM = 0,rightPWM = 0;
-    int lastLeftPWM = 0, lastRightPWM = 0;
+    int lastCor = 0;
     int err = 0;
+    int lastcom = 0;
     boolean start = false;
     float Kp = 0.1f, Kd = 0.1f, Ki = 0.1f;
 
@@ -64,6 +65,10 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
     TextView myTextView2;
     TextView myTextView3;
     ScrollView myScrollView;
+
+    MediaPlayer fightSong, finishSong;
+
+
 
     private UsbManager manager;
     private UsbSerialPort sPort;
@@ -84,6 +89,9 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // keeps the screen from turning off
 
+        fightSong = MediaPlayer.create(getApplicationContext(), R.raw.nu);
+        finishSong = MediaPlayer.create(getApplicationContext(), R.raw.finish);
+
         mTextView = (TextView) findViewById(R.id.cameraStatus);
         myControlLeft  = (SeekBar) findViewById(R.id.thresh);
         myControlKp  = (SeekBar) findViewById(R.id.Kp);
@@ -102,8 +110,16 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                start = !start;
 
+                start = !start;
+                if (start)
+                {
+                    fightSong.start();
+                }
+                else
+                {
+                    fightSong.stop();
+                }
             }
         });
 
@@ -149,7 +165,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         myControlKp.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Kp = (float)progress/250.0f;
+                Kp = (float)progress/50.0f;
             }
 
             @Override
@@ -165,7 +181,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         myControlKd.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Kd = (float)progress/150.0f;
+                Kd = (float)progress/50.0f;
             }
 
             @Override
@@ -197,7 +213,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         myControlPWM.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                basePWM = progress;
+                basePWM = progress*1200/100;
             }
 
             @Override
@@ -257,7 +273,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         final Canvas c = mSurfaceHolder.lockCanvas();
         int[] pixels = new int[bmp.getWidth()]; // pixels[] is the RGBA data
         if (c != null) {
-            for (int startY =  bmp.getHeight()/2 + heightInterval ;startY < bmp.getHeight();startY+=10) {
+            for (int startY =  bmp.getHeight()/2 + heightInterval ;startY < bmp.getHeight();startY+=30) {
 
                 bmp.getPixels(pixels, 0, bmp.getWidth(), 0, startY, bmp.getWidth(), 1);
 
@@ -274,10 +290,13 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
                 // update the row
                 bmp.setPixels(pixels, 0, bmp.getWidth(), 0, startY, bmp.getWidth(), 1);
             }
-            if (com_cnt != 0)
-                com/=com_cnt;
-            else
-                com = 0;
+            if ((com_cnt != 0)&&(com!=0)) {
+                lastcom = com ;
+                com /= com_cnt;
+            }
+            else {
+                com = lastcom; // remember the last com value
+            }
         }
 
         // draw a circle at some position
@@ -286,32 +305,47 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
 
 //        status = status + "R " + red(center_color)+ " G " +green(center_color)+ " B "+blue(center_color);
         String PWM2USB;
-        myTextView2.setText(status);
         if ((com != 0)&&start)
         {
             float cor = Kp*(com-bmp.getWidth()/2);
-            leftPWM  = basePWM  + (int)cor;
-            rightPWM = basePWM  - (int)cor;
+            int base = basePWM;
+            // slow down at sharp turn
+
+            if ((abs(cor) > 250 ) && (base > 10))
+            {
+                base -= 60;
+            }
+            else if((abs(cor) < 20 )&& (base < basePWM))
+            {
+                base = basePWM;
+            }
 
 
-            leftPWM  += (lastLeftPWM-leftPWM)*Kd;// derivative term (damping)
-            rightPWM += (lastRightPWM-rightPWM)*Kd;//
+            leftPWM  = base  + (int)cor; // proportional term
+            rightPWM = base  - (int)cor;
+
+
+            leftPWM  += (lastCor-(int)cor)* Kd;// derivative term (damping)
+            rightPWM -= (lastCor-(int)cor)* Kd;//
 
 
             leftPWM  +=  Ki* err;       // integral term
             rightPWM -=  Ki* err;
 
+            status = status + "cor " + cor + " dcor " + (lastCor-(int)cor)* Kd + " err " +err +'\n';
 
-            leftPWM  = ((leftPWM > 100) ? 100 : leftPWM);
-            rightPWM = ((rightPWM > 100) ? 100 : rightPWM);
+
+            leftPWM  = ((leftPWM > 1200) ? 1200 : leftPWM);
+            rightPWM = ((rightPWM > 1200) ? 1200 : rightPWM);
 
             leftPWM  = ((leftPWM < 1) ? 1 : leftPWM);
             rightPWM = ((rightPWM < 1) ? 1 : rightPWM);
 
+
+
             err += com-bmp.getWidth()/2; // integrating error
 
-            lastLeftPWM = leftPWM;
-            lastRightPWM = rightPWM;
+            lastCor = (int)cor;
 
             PWM2USB = String.valueOf(rightPWM)+" "+String.valueOf(leftPWM)+'\n';
 
@@ -323,7 +357,8 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
             rightPWM = 0; //clear PWM
             PWM2USB = String.valueOf(0)+" "+String.valueOf(0)+'\n';
         }
-//
+
+        myTextView2.setText(status);
         try {
             sPort.write(PWM2USB.getBytes(), 10);
         }catch (IOException e){}
@@ -363,6 +398,8 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
 //    @Override
     protected void onPause(){
         super.onPause();
+        fightSong.stop();
+        fightSong.release();
         stopIoManager();
         if(sPort != null){
             try{
@@ -442,14 +479,15 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
 
         //for displaying:
         String rxString = null;
-        if (start) {
-            try {
-                rxString = new String(data, "UTF-8"); // put the data you got into a string
-                myTextView3.append(rxString);
-                myScrollView.fullScroll(View.FOCUS_DOWN);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
+////        if (start) {
+//            try {
+//                rxString = new String(data, "UTF-8"); // put the data you got into a string
+//                myTextView3.append(rxString);
+//                myTextView2.setText(rxString);
+//                myScrollView.fullScroll(View.FOCUS_DOWN);
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 }
