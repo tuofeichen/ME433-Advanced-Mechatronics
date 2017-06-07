@@ -72,8 +72,9 @@ int len, i = 0;
 int startTime = 0;
 char rx[64]; // the raw data
 int rxPos = 0; // how much data has been stored
-bool gotRx = 0; // the flag
-int rxVal = 0; // a place to store the int that was received
+int gotRx = 0; // the flag
+int rxVal1 = 0; // a place to store the int that was received
+int rxVal2 = 0;
 
 // *****************************************************************************
 /* Application Data
@@ -349,7 +350,7 @@ void APP_Initialize(void) {
 
     startTime = _CP0_GET_COUNT();
     motor_init();
-    
+
 }
 
 /******************************************************************************
@@ -404,15 +405,33 @@ void APP_Tasks(void) {
                 // loop thru the characters in the buffer
                 while (appData.readBuffer[ii] != 0) {
                     // if you got a newline
-                    if (appData.readBuffer[ii] == '\r'|| appData.readBuffer[ii] == '\n')          
-                    {
-                        appData.readBuffer[ii] = 0;
-                        appData.readBuffer[ii+1] = 0; // clear '\r\n' 
+
+                    if (appData.readBuffer[ii] == '\r' || appData.readBuffer[ii] == '\n') {
+                        rx[rxPos] = 0; // end the array
+                        char r1 [10], r2[10];
+                        int j, jj = 0;
+                        for (j = 0; j < rxPos ; j++)
+                        {
+                            r1[j] = rx[j]; // first motor command
+                            if (rx[j] == ' ')
+                            {   
+                                j++;
+                                break;
+                            }
+                        }
                         
-                        rx[rxPos] = 0;            // end the array
-                        sscanf(rx, "%d", &rxVal); // get the int out of the array
-                        gotRx = 1;                // set the flag
-                        break;                    // get out of the while loop
+                        for (jj = 0; jj < (rxPos-j);jj++)
+                        {
+                            if (rx[j+jj] == 0) // second motor command
+                                break;
+                            r2[jj] = rx[j+jj];
+                        }
+                        
+                        sscanf(r1, "%d", &rxVal1); 
+                        sscanf(r2, "%d", &rxVal2);
+                        
+                        gotRx = 1; // set the flag
+                        break; // get out of the while loop
                     } else {
                         // save the character into the array
                         rx[rxPos] = appData.readBuffer[ii];
@@ -433,12 +452,14 @@ void APP_Tasks(void) {
                     appData.state = APP_STATE_ERROR;
                     break;
                 }
+
             }
 
 
             break;
 
         case APP_STATE_WAIT_FOR_READ_COMPLETE:
+
         case APP_STATE_CHECK_TIMER:
 
             if (APP_StateReset()) {
@@ -448,11 +469,10 @@ void APP_Tasks(void) {
             /* Check if a character was received or a switch was pressed.
              * The isReadComplete flag gets updated in the CDC event handler. */
 
-            if (gotRx || _CP0_GET_COUNT() - startTime > (48000000 / 2 /5)) {
-            
+            // this is odd that only gotRx cannot trigger this? 
+            if (gotRx || (_CP0_GET_COUNT() - startTime > (48000000 / 2 / 20))) {
                 appData.state = APP_STATE_SCHEDULE_WRITE;
             }
-
             break;
 
 
@@ -468,25 +488,22 @@ void APP_Tasks(void) {
             appData.state = APP_STATE_WAIT_FOR_WRITE_COMPLETE;
 
             if (gotRx) {
-                len = sprintf(dataOut, "got: %d\r\n", rxVal);// echo 
-                USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
-                        &appData.writeTransferHandle,
-                        dataOut, len,
-                        USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
+                len = sprintf(dataOut, "got: %d %d\r\n", rxVal1, rxVal2); // echo 
                 rxPos = 0;
-                gotRx = 0; 
-                
-                motor_set_speed(0,rxVal,0);
-                
-            } 
-            else {
-                len = sprintf(dataOut, "%d\r\n", i); // counting
-                i++;
-                USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
-                        &appData.writeTransferHandle, dataOut, len,
-                        USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
+                gotRx = 0;
+                motor_set_speed(1, rxVal1);
+                motor_set_speed(0, rxVal2);
+            } else {
+                len = 1;
+                dataOut[0] = 0;
+                //                len = sprintf(dataOut, "%d\r\n", 1); // echo 
                 startTime = _CP0_GET_COUNT();
             }
+
+            USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
+                    &appData.writeTransferHandle,
+                    dataOut, len,
+                    USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
 
             break;
 

@@ -24,23 +24,23 @@ void motor_init()
     OC1CONbits.ON = 1;
     OC4CONbits.ON = 1;
     
-    motor_set_speed(0,0,0);
-    motor_set_speed(1,0,0);
+    motor_set_speed(0,0);
+    motor_set_speed(1,0);
 }
 
 
-void motor_set_speed(int motor, int pct, int dir)
+void motor_set_speed(int motor, int pct)
 {
        // somewhere in APP_Tasks(), probably in case APP_STATE_SCHEDULE_READ
        // when you read data from the host
     if (motor == 0) // first motor 
     {
-       LATAbits.LATA1 = dir; // direction
-       OC1RS = pct*PERIOD/100; // velocity, 50%
+       LATAbits.LATA1 = (pct>0); // direction
+       OC1RS = abs(pct)*PERIOD/100; // velocity, 50%
     }
     else
     {
-       LATBbits.LATB3 = dir; // direction
-       OC4RS = pct*PERIOD/100; // velocity, 50%
+       LATBbits.LATB3 = (pct>0); // direction
+       OC4RS = abs(pct)*PERIOD/100; // velocity, 50%
     }
 }

@@ -6,6 +6,6 @@
 #define PERIOD 1200
 
 void motor_init();
-void motor_set_speed(int motor, int pct, int dir);
+void motor_set_speed(int motor, int pct);
 
 #endif
