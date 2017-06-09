@@ -268,12 +268,12 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         mTextureView.getBitmap(bmp);
         int center_color = bmp.getPixel(320,240);
 
-        int com = 0, com_cnt = 0, heightInterval = 160;
+        int com = 0, com_cnt = 0, heightInterval = 120;
 
         final Canvas c = mSurfaceHolder.lockCanvas();
         int[] pixels = new int[bmp.getWidth()]; // pixels[] is the RGBA data
         if (c != null) {
-            for (int startY =  bmp.getHeight()/2 + heightInterval ;startY < bmp.getHeight();startY+=30) {
+            for (int startY =  bmp.getHeight()/2 + heightInterval ;startY < bmp.getHeight();startY+=10) {
 
                 bmp.getPixels(pixels, 0, bmp.getWidth(), 0, startY, bmp.getWidth(), 1);
 
@@ -311,13 +311,13 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
             int base = basePWM;
             // slow down at sharp turn
 
-            if ((abs(cor) > 250 ) && (base > 10))
+            if ((abs(cor) > 250 ) && (base > 100))
             {
                 base -= 60;
             }
             else if((abs(cor) < 20 )&& (base < basePWM))
             {
-                base = basePWM;
+                base += 20;
             }
 
 
