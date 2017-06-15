@@ -8,3 +8,5 @@ The final java code for the android phone is in TechCupAndroid folder while the 
 I laser cut and 3D printed all the mounting fixture (including suspension and wheels). 
 
 See below as the final demonstration. 
+
+[![Alt text](https://img.youtube.com/vi/JEivp6OKbOI/0.jpg)](https://www.youtube.com/watch?v=JEivp6OKbOI)
